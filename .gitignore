@@ -1,0 +1,75 @@
+###############################################
+# Global OS / Editor
+###############################################
+# Windows
+Thumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/
+*.code-workspace
+
+###############################################
+# Delphi / Pascal
+###############################################
+
+# Compiled binaries & units
+*.exe
+*.dll
+*.dcu
+*.dcp
+*.bpl
+*.bpi
+*.dcpil
+*.drc
+*.dres
+*.map
+*.tds
+*.obj
+*.lib
+
+# Delphi intermediate/cache/state
+*.~*
+*.local
+*.identcache
+*.projdata
+*.tvsconfig
+*.dproj.local
+*.dproj.desk
+*.dsk
+
+# Delphi generated folders
+__history/
+__recovery/
+.history/
+
+###############################################
+# Kotlin / JVM
+###############################################
+
+# Common JVM outputs
+*.class
+*.jar
+*.war
+*.ear
+
+# Kotlin CLI/IDE output
+out/
+bin/
+
+# Build systems (framtida)
+build/
+.gradle/
+.gradle-cache/
+
+###############################################
+# Common temporary files
+###############################################
+*.log
+*.tmp
+*.bak
+*.swp
+*.lock
+
+## Extra ##
+docs/
