@@ -1,44 +1,129 @@
 package kodTest.Winassist
 
 /*
-Testet består i att ta funktionen TestaInköpspriserBtnClick i AktiveraSnittpris.pas och översätta den till Kotlin
+Testet bestï¿½r i att ta funktionen TestaInkï¿½pspriserBtnClick i AktiveraSnittpris.pas och ï¿½versï¿½tta den till Kotlin
 
-Gui delar behöver inte konverteras utan vi tänker att den befintliga funktionen fortfarande ska hantera gui och bara anropa den nya funktionen för att få Antal och LagerRe som svar
-Application.processMessages och Screen.Cursor kan du ignorera de berör bara gui applikationen.
-Du behöver inte ta hand om Open eller Close av tabeller
+Gui delar behï¿½ver inte konverteras utan vi tï¿½nker att den befintliga funktionen fortfarande ska hantera gui och bara anropa den nya funktionen fï¿½r att fï¿½ Antal och LagerRe som svar
+Application.processMessages och Screen.Cursor kan du ignorera de berï¿½r bara gui applikationen.
+Du behï¿½ver inte ta hand om Open eller Close av tabeller
 
-Dm är databashantering.  Du får en dummy som funkar i uppgiften
-Dm.Lager kan du ignorera vi förutsätter att en lista med LagerPoster skickas in i funktionen
+Dm ï¿½r databashantering.  Du fï¿½r en dummy som funkar i uppgiften
+Dm.Lager kan du ignorera vi fï¿½rutsï¿½tter att en lista med LagerPoster skickas in i funktionen
 
-getInkopsPris är en funktion som räknar ut priser via diverse regler.  Du får en dummy som funkar i uppgiften
-getInkopsPrisVNetto är en funktion som räknar ut inköpspriser via diverse regler.  Du får en dummy som funkar i uppgiften
+getInkopsPris ï¿½r en funktion som rï¿½knar ut priser via diverse regler.  Du fï¿½r en dummy som funkar i uppgiften
+getInkopsPrisVNetto ï¿½r en funktion som rï¿½knar ut inkï¿½pspriser via diverse regler.  Du fï¿½r en dummy som funkar i uppgiften
 
-L_ är en översättningsFunktion Du får en dummy som funkar i uppgiften
+L_ ï¿½r en ï¿½versï¿½ttningsFunktion Du fï¿½r en dummy som funkar i uppgiften
 
-IsFloatString är en intern funktion som gör om en string till en integer.  Den kan du ignorera vi förutsätter att talen redan är doubles
+IsFloatString ï¿½r en intern funktion som gï¿½r om en string till en integer.  Den kan du ignorera vi fï¿½rutsï¿½tter att talen redan ï¿½r doubles
 
  */
 
-class KodTest {
+class KodTest { // vÃ¥r nya huvudklass
 	fun TestaInkopspriserBtnClick(stock: List<Lager>): Pair<Int,List<String>> {
-		//Insert code here :-)
+		var antal : Int = 0
+		val rader : MutableList<String> = mutableListOf()
+
+		for (lager in stock) {
+
+			val status = lager.lgrStatus
+
+			val relevant : Boolean = 
+				status == "lgrJA" || 
+				status == "lgrHEMTAGEN" || 
+				status == "lgrUTGAENDE"
+
+			// 1) filtrera status
+			if(!relevant){
+				continue
+			}
+
+			// 2) slÃ¥ upp artikel
+			val artikel : Artikel? = DM.getArtikel(lager.artikelMk)
+
+			// 3) deklarera variabler
+			var artNr: String
+			var typ: String = ""
+			var kod: String = ""
+			var mk: String
+			var rk: String
+			var vg: String
+			var pg: String
+			var benamning: String
+			var brutto: Double = 0.0 // anpassad till direkt Double
+			var netto: Double = 0.0
+			var taMed: Boolean = false
+
+			// 4) fall: artikel finns
+			if (artikel != null) { // hÃ¤mtar vÃ¤rden
+				antal++
+				artNr = artikel.artikelnr
+				mk = artikel.mk
+				benamning = artikel.benamning1
+				rk = artikel.rabattKod
+				vg = artikel.varuGrupp
+				pg = artikel.prodGrupp
+
+				if (artikel.fastPris) { // F-fall: fast inkÃ¶pspris
+                    typ = "F"
+                    kod = "IS"
+                    brutto = artikel.pris
+                    netto = artikel.inkop
+                    taMed = (netto == 0.0) // om inkÃ¶pspris saknas 0.0
+                } else if (artikel.useNetto) {// V-fall: verkstadsnetto
+                    typ = "V"
+                    brutto = artikel.vNetto
+                    netto = getInkopsPrisVNetto(brutto, mk, rk, vg, pg)
+                    taMed = rk.isEmpty() || netto >= brutto
+                    kod = if (rk.isEmpty()) "RS" else "RV"
+
+                }else { // B-fall: bruttoprisbaserad
+                    typ = "B"
+                    brutto = artikel.pris
+                    netto = getInkopsPris(brutto, mk, rk, vg, pg)
+                    taMed = rk.isEmpty() || netto >= brutto
+                    kod = if (rk.isEmpty()) "RS" else "RV"
+                }
+
+			} else { // sÃ¤tter vÃ¤rden
+				// artikel saknas
+				artNr = lager.artikelnr
+				mk = lager.mk
+				benamning = "SAKNAS I ARTIKELREGISTER"
+				typ = ""
+				kod = ""
+				rk = ""
+				brutto = 0.0
+				netto = 0.0
+				taMed = true
+			}
+
+			if (taMed) {
+				val rad = "typ=$typ; kod=$kod; artNr=$artNr; mk=$mk; rk=$rk; benamning=$benamning; netto=$netto; brutto=$brutto"
+				rader.add(rad)
+			}
+
+		}
+
+		return Pair(antal, rader)
 	}
 
-	fun getInkopsPris(brutto: Double, mk: String, rk: String, vg: String, pg: String): Double {
+	fun getInkopsPris(brutto: Double, mk: String, rk: String, vg: String, pg: String): Double { // Dummy
 		return brutto
 	}
 
-	fun getInkopsPrisVNetto(brutto: Double, mk: String, rk: String, vg: String, pg: String): Double {
+	fun getInkopsPrisVNetto(brutto: Double, mk: String, rk: String, vg: String, pg: String): Double { // Dummy
 		return brutto / 2.0
 	}
 
-	fun L_(id: Int, text: String): String {
+	fun L_(id: Int, text: String): String { // Dummy
 		return text
 	}
+	
 }
 
 class DM {
-	companion object {
+	companion object { // ungefÃ¤r static. tillhÃ¶r klassen och ej instans av klass
 		val lager1 = Lager("123VO", "lgrJA", "123", "VO")
 		val lager2 = Lager("456VO", "lgrHEMTAGEN", "456", "VO")
 		val artikel1 = Artikel("123VO", "123", "VO", "Artikel 1", "RAB1", "VGR1", "PG1", true, 123.45, 0.0, false, 0.0)
@@ -57,14 +142,14 @@ class DM {
 	}
 }
 
-data class Lager(
-	val artikelMk: String,
+data class Lager( // record motsvarande DM.Lager
+	val artikelMk: String,	// mÃ¶jligtvis artikelns unika ID
 	val lgrStatus: String,
 	val artikelnr: String,
 	val mk: String
 )
 
-data class Artikel(
+data class Artikel( // record motsvarande DM.Artiklar
 	val artikelMk: String,
 	val artikelnr: String,
 	val mk: String,
@@ -78,3 +163,14 @@ data class Artikel(
 	val useNetto: Boolean,
 	val vNetto: Double
 )
+
+fun main() {
+    val kodTest = KodTest()
+    val stock = DM.getLager()
+    val (antal, rader) = kodTest.TestaInkopspriserBtnClick(stock)
+
+    println("Antal artiklar hittade: $antal")
+    for (rad in rader) {
+        println(rad)
+    }
+}
