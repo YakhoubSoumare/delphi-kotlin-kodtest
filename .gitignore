@@ -1,6 +1,7 @@
 ###############################################
 # Global OS / Editor
 ###############################################
+
 # Windows
 Thumbs.db
 Desktop.ini
@@ -44,10 +45,10 @@ __recovery/
 .history/
 
 ###############################################
-# Kotlin / JVM
+# Kotlin / JVM / Build
 ###############################################
 
-# Common JVM outputs
+# JVM outputs
 *.class
 *.jar
 *.war
@@ -57,19 +58,34 @@ __recovery/
 out/
 bin/
 
-# Build systems (framtida)
-build/
+# Gradle
 .gradle/
-.gradle-cache/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+
+# Maven (if used)
+target/
+
+# IntelliJ / JetBrains IDEs
+.idea/
+*.iml
+
+# Test output (JUnit, Gradle test reports)
+test-results/
+reports/
 
 ###############################################
 # Common temporary files
 ###############################################
+
 *.log
 *.tmp
 *.bak
 *.swp
 *.lock
 
-## Extra ##
+###############################################
+# Custom (mine)
+###############################################
 docs/
