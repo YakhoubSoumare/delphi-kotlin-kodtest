@@ -21,7 +21,7 @@ IsFloatString �r en intern funktion som g�r om en string till en integer.  D
 
 class KodTest { // vår nya huvudklass
 	fun TestaInkopspriserBtnClick(stock: List<Lager>): Pair<Int,List<String>> {
-		var antal : Int = 0;
+		var antal : Int = 0
 		val rader : MutableList<String> = mutableListOf()
 
 		for (lager in stock) {
@@ -50,7 +50,7 @@ class KodTest { // vår nya huvudklass
 			var vg: String
 			var pg: String
 			var benamning: String
-			var brutto: Double = 0.0
+			var brutto: Double = 0.0 // anpassad till direkt Double
 			var netto: Double = 0.0
 			var taMed: Boolean = false
 
@@ -63,6 +63,27 @@ class KodTest { // vår nya huvudklass
 				rk = artikel.rabattKod
 				vg = artikel.varuGrupp
 				pg = artikel.prodGrupp
+
+				if (artikel.fastPris) { // F-fall: fast inköpspris
+                    typ = "F"
+                    kod = "IS"
+                    brutto = artikel.pris
+                    netto = artikel.inkop
+                    taMed = (netto == 0.0) // om inköpspris saknas 0.0
+                } else if (artikel.useNetto) {// V-fall: verkstadsnetto
+                    typ = "V"
+                    brutto = artikel.vNetto
+                    netto = getInkopsPrisVNetto(brutto, mk, rk, vg, pg)
+                    taMed = rk.isEmpty() || netto >= brutto
+                    kod = if (rk.isEmpty()) "RS" else "RV"
+
+                }else { // B-fall: bruttoprisbaserad
+                    typ = "B"
+                    brutto = artikel.pris
+                    netto = getInkopsPris(brutto, mk, rk, vg, pg)
+                    taMed = rk.isEmpty() || netto >= brutto
+                    kod = if (rk.isEmpty()) "RS" else "RV"
+                }
 
 			} else { // sätter värden
 				// artikel saknas
@@ -78,24 +99,24 @@ class KodTest { // vår nya huvudklass
 			}
 
 			if (taMed) {
-				val rad = "artNr=$artNr; mk=$mk; benamning=$benamning"
+				val rad = "typ=$typ; kod=$kod; artNr=$artNr; mk=$mk; rk=$rk; benamning=$benamning; netto=$netto; brutto=$brutto"
 				rader.add(rad)
 			}
 
 		}
 
-		return(antal, rader)
+		return Pair(antal, rader)
 	}
 
-	fun getInkopsPris(brutto: Double, mk: String, rk: String, vg: String, pg: String): Double { // Dummy utan beräkning
+	fun getInkopsPris(brutto: Double, mk: String, rk: String, vg: String, pg: String): Double { // Dummy
 		return brutto
 	}
 
-	fun getInkopsPrisVNetto(brutto: Double, mk: String, rk: String, vg: String, pg: String): Double { // Dummy utan beräkning
+	fun getInkopsPrisVNetto(brutto: Double, mk: String, rk: String, vg: String, pg: String): Double { // Dummy
 		return brutto / 2.0
 	}
 
-	fun L_(id: Int, text: String): String { // Dummy utan språkbyte
+	fun L_(id: Int, text: String): String { // Dummy
 		return text
 	}
 	
@@ -142,3 +163,14 @@ data class Artikel( // record motsvarande DM.Artiklar
 	val useNetto: Boolean,
 	val vNetto: Double
 )
+
+fun main() {
+    val kodTest = KodTest()
+    val stock = DM.getLager()
+    val (antal, rader) = kodTest.TestaInkopspriserBtnClick(stock)
+
+    println("Antal artiklar hittade: $antal")
+    for (rad in rader) {
+        println(rad)
+    }
+}
