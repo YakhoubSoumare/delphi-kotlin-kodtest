@@ -1,5 +1,7 @@
 # README
 
+Ett äldre kodtest där jag översatte och anpassade affärslogik från Delphi till Kotlin.
+
 ## Översikt
 
 Kotlin-funktionen `TestaInkopspriserBtnClick` är en moderniserad version av Delphi-logiken där GUI- och datalagerkod har tagits bort enligt uppgiften.
